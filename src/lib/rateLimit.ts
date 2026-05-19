@@ -1,8 +1,9 @@
 import { promises as fs } from "fs";
 import path from "path";
 import type { NextRequest } from "next/server";
+import { getDataRoot } from "@/lib/dataDir";
 
-const STORE_PATH = path.join(process.cwd(), ".data", "rate-limits.json");
+const STORE_PATH = path.join(getDataRoot(), "rate-limits.json");
 
 type Store = Record<string, number>;
 

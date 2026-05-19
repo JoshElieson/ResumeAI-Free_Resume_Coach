@@ -3,8 +3,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { FeedbackResponse } from "@/types/feedback";
 import type { ScanRecord, ScanSummary } from "@/types/scan";
+import { getDataRoot } from "@/lib/dataDir";
 
-const SCANS_ROOT = path.join(process.cwd(), ".data", "scans");
+const SCANS_ROOT = path.join(getDataRoot(), "scans");
 
 function safeUserId(userId: string): string {
   return userId.replace(/[^a-zA-Z0-9_-]/g, "_");

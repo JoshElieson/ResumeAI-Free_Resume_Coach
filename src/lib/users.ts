@@ -2,8 +2,9 @@ import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { getDataRoot } from "@/lib/dataDir";
 
-const USERS_PATH = path.join(process.cwd(), ".data", "users.json");
+const USERS_PATH = path.join(getDataRoot(), "users.json");
 
 export type StoredUser = {
   id: string;
