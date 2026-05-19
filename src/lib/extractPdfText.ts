@@ -1,3 +1,4 @@
+import pdfParse from "pdf-parse";
 import { join } from "path";
 import { pathToFileURL } from "url";
 import { ensurePdfJsNodePolyfills } from "@/lib/pdfJsNodePolyfills";
@@ -117,8 +118,22 @@ async function extractPageText(
   return buildPageTextFromItems(sorted).text;
 }
 
-/** Return the number of pages in a PDF without extracting full text. */
-export async function countPdfPages(buffer: Buffer): Promise<number> {
+async function countPdfPagesWithPdfParse(buffer: Buffer): Promise<number> {
+  const data = await pdfParse(buffer);
+  return data.numpages;
+}
+
+async function extractPdfTextWithPdfParse(
+  buffer: Buffer,
+  maxPages: number,
+): Promise<string> {
+  const data = await pdfParse(buffer, {
+    max: Number.isFinite(maxPages) ? maxPages : 0,
+  });
+  return data.text.trim();
+}
+
+async function countPdfPagesWithPdfJs(buffer: Buffer): Promise<number> {
   const pdfjs = await loadPdfJs();
   const pdf = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
@@ -127,10 +142,9 @@ export async function countPdfPages(buffer: Buffer): Promise<number> {
   return pdf.numPages;
 }
 
-/** Extract resume text from a PDF buffer using layout positions (preserves visual gaps). */
-export async function extractPdfText(
+async function extractPdfTextWithPdfJs(
   buffer: Buffer,
-  maxPages = Infinity,
+  maxPages: number,
 ): Promise<string> {
   const pdfjs = await loadPdfJs();
   const pdf = await pdfjs.getDocument({
@@ -147,4 +161,29 @@ export async function extractPdfText(
   }
 
   return parts.join("\n\n").trim();
+}
+
+/** Return the number of pages in a PDF without extracting full text. */
+export async function countPdfPages(buffer: Buffer): Promise<number> {
+  ensurePdfJsNodePolyfills();
+  try {
+    return await countPdfPagesWithPdfJs(buffer);
+  } catch (err) {
+    console.warn("pdfjs page count failed; using pdf-parse:", err);
+    return countPdfPagesWithPdfParse(buffer);
+  }
+}
+
+/** Extract resume text from a PDF buffer using layout positions (preserves visual gaps). */
+export async function extractPdfText(
+  buffer: Buffer,
+  maxPages = Infinity,
+): Promise<string> {
+  ensurePdfJsNodePolyfills();
+  try {
+    return await extractPdfTextWithPdfJs(buffer, maxPages);
+  } catch (err) {
+    console.warn("pdfjs text extract failed; using pdf-parse:", err);
+    return extractPdfTextWithPdfParse(buffer, maxPages);
+  }
 }

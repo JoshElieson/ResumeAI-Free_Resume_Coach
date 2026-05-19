@@ -1,18 +1,18 @@
 /**
- * pdfjs-dist expects DOMMatrix/ImageData/Path2D in Node. On Vercel the built-in
- * polyfill can fail if @napi-rs/canvas is not resolved before pdf.mjs loads.
+ * pdfjs-dist needs DOMMatrix in Node. Node 20 (Vercel default) does not provide it;
+ * Node 22+ does. Polyfill before any pdfjs-dist import on the server.
  */
 export function ensurePdfJsNodePolyfills(): void {
   if (typeof window !== "undefined") return;
+  if (globalThis.DOMMatrix) return;
 
-  if (!globalThis.DOMMatrix) {
+  try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const canvas = require("@napi-rs/canvas") as {
       DOMMatrix?: typeof DOMMatrix;
       ImageData?: typeof ImageData;
       Path2D?: typeof Path2D;
     };
-
     if (canvas.DOMMatrix) {
       globalThis.DOMMatrix = canvas.DOMMatrix as typeof DOMMatrix;
     }
@@ -22,6 +22,20 @@ export function ensurePdfJsNodePolyfills(): void {
     if (canvas.Path2D) {
       globalThis.Path2D = canvas.Path2D as typeof Path2D;
     }
+  } catch {
+    // @napi-rs/canvas may be unavailable in the serverless bundle.
+  }
+
+  if (!globalThis.DOMMatrix) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const DOMMatrixPolyfill = require("dommatrix") as
+      | (new () => DOMMatrix)
+      | { default: new () => DOMMatrix };
+    globalThis.DOMMatrix = (
+      "default" in DOMMatrixPolyfill
+        ? DOMMatrixPolyfill.default
+        : DOMMatrixPolyfill
+    ) as typeof DOMMatrix;
   }
 
   if (!globalThis.navigator?.language) {
