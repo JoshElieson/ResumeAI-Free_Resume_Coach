@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     "pdfjs-dist",
     "@napi-rs/canvas",
-    "dommatrix",
     "pdf-parse",
   ],
   webpack: (config, { dev, isServer }) => {

@@ -114,19 +114,18 @@ export default function Home() {
   async function handleAnalyze(file: File) {
     setError(null);
     setShowSignInPrompt(false);
-
-    const pageCheck = await validateResumePageCountClient(file);
-    if (!pageCheck.ok) {
-      setError(pageCheck.message);
-      return;
-    }
-
     setLoading(true);
     setActiveIndex(null);
     setActiveScanId(null);
     clearGuestView();
 
     try {
+      const pageCheck = await validateResumePageCountClient(file);
+      if (!pageCheck.ok) {
+        setError(pageCheck.message);
+        return;
+      }
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("targetRole", jobContext.targetRole);
