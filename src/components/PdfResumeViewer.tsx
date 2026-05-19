@@ -916,7 +916,7 @@ export function PdfResumeViewer({
 
         ref={containerRef}
 
-        className="bg-slate-200/90 p-4 sm:p-6 dark:bg-navy-mid/80"
+        className="bg-navy-mid/80 p-4 sm:p-6"
 
       >
 
