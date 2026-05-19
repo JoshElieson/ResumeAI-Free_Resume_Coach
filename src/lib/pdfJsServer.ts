@@ -1,5 +1,6 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
+import { ensurePdfJsNodePolyfills } from "@/lib/pdfJsNodePolyfills";
 
 export type PdfJsServerModule = {
   getDocument: (params: {
@@ -50,6 +51,7 @@ let pdfjsPromise: Promise<PdfJsServerModule> | null = null;
 export async function loadPdfJsServer(): Promise<PdfJsServerModule> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
+      ensurePdfJsNodePolyfills();
       const pdfjs = (await import(
         /* webpackIgnore: true */
         `pdfjs-dist/legacy/build/pdf.mjs`

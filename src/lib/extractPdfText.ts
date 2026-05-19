@@ -1,5 +1,6 @@
 import { join } from "path";
 import { pathToFileURL } from "url";
+import { ensurePdfJsNodePolyfills } from "@/lib/pdfJsNodePolyfills";
 import {
   buildPageTextFromItems,
   sortItemsReadingOrder,
@@ -42,6 +43,7 @@ let pdfjsPromise: Promise<PdfJsModule> | null = null;
 async function loadPdfJs(): Promise<PdfJsModule> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
+      ensurePdfJsNodePolyfills();
       const pdfjs = (await import(
         /* webpackIgnore: true */
         `pdfjs-dist/legacy/build/pdf.mjs`
