@@ -115,16 +115,30 @@ async function extractPageText(
   return buildPageTextFromItems(sorted).text;
 }
 
+/** Return the number of pages in a PDF without extracting full text. */
+export async function countPdfPages(buffer: Buffer): Promise<number> {
+  const pdfjs = await loadPdfJs();
+  const pdf = await pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    useSystemFonts: true,
+  }).promise;
+  return pdf.numPages;
+}
+
 /** Extract resume text from a PDF buffer using layout positions (preserves visual gaps). */
-export async function extractPdfText(buffer: Buffer): Promise<string> {
+export async function extractPdfText(
+  buffer: Buffer,
+  maxPages = Infinity,
+): Promise<string> {
   const pdfjs = await loadPdfJs();
   const pdf = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
     useSystemFonts: true,
   }).promise;
 
+  const pageLimit = Math.min(pdf.numPages, maxPages);
   const parts: string[] = [];
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+  for (let pageNumber = 1; pageNumber <= pageLimit; pageNumber++) {
     const page = await pdf.getPage(pageNumber);
     const pageText = await extractPageText(page, pdfjs.Util);
     if (pageText.trim()) parts.push(pageText);

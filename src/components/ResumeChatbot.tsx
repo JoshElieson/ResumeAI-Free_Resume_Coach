@@ -1,15 +1,48 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ChatMessage } from "@/lib/chat";
+import { chatMessageForApi, type ChatMessage } from "@/lib/chat";
+import {
+  buildChatSubmitMessage,
+  formatCopiedCommentPreview,
+} from "@/lib/chatCompose";
 import type { JobSearchContext } from "@/types/jobContext";
 
 const UPLOAD_RESUME_FIRST_MESSAGE =
-  "Upload your resume or open a saved scan before asking for advice — that way I can give feedback tailored to your experience.";
+  "Upload your resume then come back and ask me for advice — I'm here to give you feedback tailored to your experience and goals.";
 
 const UPLOAD_LOCKED_PLACEHOLDER = "Upload a file before asking for advice";
 
 const TYPING_DELAY_MS = 500;
+
+function CopiedCommentAttachment({ comment }: { comment: string }) {
+  const preview = formatCopiedCommentPreview(comment);
+  if (!preview) return null;
+
+  return (
+    <div className="truncate rounded-md border border-accent/50 bg-accent/30 px-2 py-1 text-xs font-medium text-foreground">
+      {preview}
+    </div>
+  );
+}
+
+function UserChatBubble({ message }: { message: ChatMessage }) {
+  const comments = message.copiedComments ?? [];
+  const text = message.content.trim();
+
+  return (
+    <div className="max-w-[90%] rounded-xl bg-accent/25 px-3 py-2 text-sm leading-relaxed text-foreground">
+      {comments.length > 0 && (
+        <div className="mb-2 flex flex-col gap-1">
+          {comments.map((comment, index) => (
+            <CopiedCommentAttachment key={index} comment={comment} />
+          ))}
+        </div>
+      )}
+      {text ? <p className="whitespace-pre-wrap">{text}</p> : null}
+    </div>
+  );
+}
 
 function TypingBubble() {
   return (
@@ -38,6 +71,10 @@ type Props = {
   heightPx?: number;
   jobContext?: JobSearchContext;
   resumeText?: string | null;
+  copiedComments?: string[];
+  onCopiedCommentsChange?: (comments: string[]) => void;
+  onRemoveCopiedComment?: (index: number) => void;
+  copyWarning?: string | null;
 };
 
 export function ResumeChatbot({
@@ -47,6 +84,10 @@ export function ResumeChatbot({
   heightPx,
   jobContext,
   resumeText,
+  copiedComments = [],
+  onCopiedCommentsChange,
+  onRemoveCopiedComment,
+  copyWarning,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -69,17 +110,29 @@ export function ResumeChatbot({
   const inputLocked =
     !hasResumeContext && messages.some((m) => m.role === "user");
 
+  const canSubmit =
+    copiedComments.length > 0 || Boolean(input.trim());
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (sending || inputLocked) return;
+    if (sending || inputLocked || !canSubmit) return;
 
-    const text = input.trim();
-    if (!text) return;
+    const savedInput = input;
+    const savedComments = [...copiedComments];
+    const apiText = buildChatSubmitMessage(savedComments, savedInput);
+    const displayText = savedInput.trim();
 
     setInput("");
+    onCopiedCommentsChange?.([]);
     setError(null);
 
-    const userMessage: ChatMessage = { role: "user", content: text };
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: displayText,
+      apiContent: savedComments.length > 0 ? apiText : undefined,
+      copiedComments:
+        savedComments.length > 0 ? savedComments : undefined,
+    };
     setMessages((prev) => [...prev, userMessage]);
 
     setSending(true);
@@ -99,8 +152,8 @@ export function ResumeChatbot({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: text,
-          history: messages,
+          message: apiText,
+          history: messages.map(chatMessageForApi),
           jobContext,
           resumeText: resumeText ?? undefined,
         }),
@@ -118,7 +171,8 @@ export function ResumeChatbot({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setMessages((prev) => prev.slice(0, -1));
-      setInput(text);
+      setInput(savedInput);
+      onCopiedCommentsChange?.(savedComments);
     } finally {
       setSending(false);
       if (!inputLocked) {
@@ -165,15 +219,13 @@ export function ResumeChatbot({
               key={i}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div
-                className={`max-w-[90%] rounded-xl px-3 py-2 text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-accent/25 text-foreground"
-                    : "border border-white/10 bg-surface-elevated/80 text-foreground/90"
-                }`}
-              >
-                {msg.content}
-              </div>
+              {msg.role === "user" ? (
+                <UserChatBubble message={msg} />
+              ) : (
+                <div className="max-w-[90%] rounded-xl border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm leading-relaxed text-foreground/90">
+                  {msg.content}
+                </div>
+              )}
             </div>
           ))}
           {sending && <TypingBubble />}
@@ -188,6 +240,54 @@ export function ResumeChatbot({
           onSubmit={handleSubmit}
           className="shrink-0 border-t border-white/10 p-4"
         >
+          {copyWarning && (
+            <p
+              className="mb-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+              role="alert"
+            >
+              {copyWarning}
+            </p>
+          )}
+          {copiedComments.length > 0 && (
+            <div className="mb-2 space-y-1.5">
+              {copiedComments.map((comment, index) => {
+                const preview = formatCopiedCommentPreview(comment);
+                return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-accent/40 bg-accent/15 px-3 py-2"
+                >
+                  <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                    {preview || "Comment"}
+                  </span>
+                  <button
+                    type="button"
+                    title="Remove copied comment"
+                    aria-label={`Remove copied comment: ${preview || "comment"}`}
+                    disabled={sending}
+                    onClick={() => onRemoveCopiedComment?.(index)}
+                    className="rounded-md p-1 text-muted transition hover:bg-white/10 hover:text-foreground disabled:opacity-50"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                );
+              })}
+            </div>
+          )}
           <textarea
             ref={inputRef}
             value={input}
@@ -205,14 +305,12 @@ export function ResumeChatbot({
             }
             rows={2}
             className={`w-full resize-none rounded-lg border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/20 ${
-              inputLocked
-                ? "cursor-not-allowed opacity-60"
-                : ""
+              inputLocked ? "cursor-not-allowed opacity-60" : ""
             }`}
           />
           <button
             type="submit"
-            disabled={sending || inputLocked || !input.trim()}
+            disabled={sending || inputLocked || !canSubmit}
             onMouseDown={(e) => e.preventDefault()}
             className="btn-primary mt-2 w-full py-2 text-sm"
           >

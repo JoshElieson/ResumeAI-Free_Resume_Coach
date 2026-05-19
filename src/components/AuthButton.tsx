@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+} from "react";
+import { createPortal } from "react-dom";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 type Props = {
   className?: string;
   callbackUrl?: string;
 };
+
+const MENU_WIDTH_PX = 248;
+const MENU_CLOSE_DELAY_MS = 120;
 
 export function AuthButton({ className = "", callbackUrl = "/" }: Props) {
   const { data: session, status } = useSession();
@@ -58,52 +68,154 @@ export function AuthButton({ className = "", callbackUrl = "/" }: Props) {
   const loginHref = `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
   return (
-    <div className={`relative ${className}`}>
-      <div className="group relative inline-block">
-        <button
-          type="button"
-          aria-haspopup="menu"
-          className="btn-primary inline-flex cursor-default items-center gap-1.5 px-4 py-2"
-        >
-          Create an Account
-          <ChevronIcon />
-        </button>
+    <CreateAccountDropdown
+      className={className}
+      registerHref={registerHref}
+      loginHref={loginHref}
+      callbackUrl={callbackUrl}
+    />
+  );
+}
 
-        <div
-          className="pointer-events-none absolute right-0 top-full z-50 min-w-[15.5rem] pt-1 opacity-0 transition-opacity duration-150 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
-          role="menu"
-          aria-label="Sign in options"
+type CreateAccountDropdownProps = {
+  className?: string;
+  registerHref: string;
+  loginHref: string;
+  callbackUrl: string;
+};
+
+function CreateAccountDropdown({
+  className = "",
+  registerHref,
+  loginHref,
+  callbackUrl,
+}: CreateAccountDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const [menuTop, setMenuTop] = useState(0);
+  const [menuLeft, setMenuLeft] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updateMenuPosition = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setMenuTop(rect.bottom + 4);
+    setMenuLeft(Math.max(8, rect.right - MENU_WIDTH_PX));
+  }, []);
+
+  const cancelScheduledClose = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  const openMenu = useCallback(() => {
+    cancelScheduledClose();
+    updateMenuPosition();
+    setOpen(true);
+  }, [cancelScheduledClose, updateMenuPosition]);
+
+  const scheduleClose = useCallback(() => {
+    cancelScheduledClose();
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpen(false);
+      closeTimerRef.current = null;
+    }, MENU_CLOSE_DELAY_MS);
+  }, [cancelScheduledClose]);
+
+  useEffect(() => {
+    if (!open) return;
+    updateMenuPosition();
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+    return () => {
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [open, updateMenuPosition]);
+
+  useEffect(() => {
+    return () => cancelScheduledClose();
+  }, [cancelScheduledClose]);
+
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    const next = event.relatedTarget as Node | null;
+    if (!event.currentTarget.contains(next)) {
+      scheduleClose();
+    }
+  }
+
+  const menu = (
+    <div
+      role="menu"
+      aria-label="Sign in options"
+      style={{
+        position: "fixed",
+        top: menuTop,
+        left: menuLeft,
+        width: MENU_WIDTH_PX,
+        zIndex: 99999,
+      }}
+      className="rounded-lg border border-white/10 bg-surface py-1 shadow-2xl shadow-black/50 ring-1 ring-white/10"
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleClose}
+    >
+      <button
+        type="button"
+        role="menuitem"
+        onClick={() => signIn("google", { callbackUrl })}
+        className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/5"
+      >
+        <GoogleIcon />
+        Sign in with Google
+      </button>
+      <Link
+        href={registerHref}
+        role="menuitem"
+        className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-white/5"
+      >
+        <EmailIcon />
+        Sign in with Email
+      </Link>
+      <p className="px-3 py-2 text-xs text-muted">
+        Already have an account?{" "}
+        <Link
+          href={loginHref}
+          className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
         >
-          <div className="app-card overflow-hidden rounded-lg border border-white/10 py-1 shadow-lg">
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => signIn("google", { callbackUrl })}
-              className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/5"
-            >
-              <GoogleIcon />
-              Sign in with Google
-            </button>
-            <Link
-              href={registerHref}
-              role="menuitem"
-              className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-white/5"
-            >
-              <EmailIcon />
-              Sign in with Email
-            </Link>
-            <p className="px-3 py-2 text-xs text-muted">
-              Already have an account?{" "}
-              <Link
-                href={loginHref}
-                className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+          Sign in
+        </Link>
+      </p>
+    </div>
+  );
+
+  return (
+    <div
+      ref={triggerRef}
+      className={`relative inline-block ${className}`}
+      onMouseEnter={openMenu}
+      onMouseLeave={scheduleClose}
+      onFocus={openMenu}
+      onBlur={handleBlur}
+    >
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="btn-primary inline-flex cursor-default items-center gap-1.5 px-4 py-2"
+      >
+        Create an Account
+        <ChevronIcon />
+      </button>
+
+      {mounted && open ? createPortal(menu, document.body) : null}
     </div>
   );
 }

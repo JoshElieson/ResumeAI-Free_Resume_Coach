@@ -19,7 +19,8 @@ export function SignInOverlay({
   }
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-navy/85 px-5 backdrop-blur-sm">
+    <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-navy/85 px-5 backdrop-blur-sm">
+      <div className="pointer-events-auto flex flex-col items-center gap-3">
       <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-surface-elevated">
         <svg
           className="h-5 w-5 text-muted"
@@ -41,6 +42,7 @@ export function SignInOverlay({
         {description}
       </p>
       <AuthButton />
+      </div>
     </div>
   );
 }

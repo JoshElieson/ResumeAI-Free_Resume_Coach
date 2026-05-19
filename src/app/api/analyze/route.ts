@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { analyzeResume } from "@/lib/feedback";
+import { renderPdfPageImages } from "@/lib/renderPdfPageImages";
 import { parseJobContextFromFormData } from "@/lib/jobContext";
 import {
   extractTextFromFile,
@@ -15,6 +16,7 @@ import {
   getClientIp,
   rateLimitHeaders,
 } from "@/lib/rateLimit";
+import { validateResumePageCount } from "@/lib/validateResumePages";
 import { saveScan } from "@/lib/scans";
 
 export const runtime = "nodejs";
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
     let fileBuffer: Buffer | null = null;
     let fileName = "";
     let mimeType = "";
+    let fileFormat: ResumeFormat | null = null;
 
     if (file instanceof File && file.size > 0) {
       if (file.size > MAX_FILE_BYTES) {
@@ -60,10 +63,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const format: ResumeFormat | null =
+      fileFormat =
         getFormatFromMime(file.type) ?? getFormatFromName(file.name);
 
-      if (!format) {
+      if (!fileFormat) {
         return NextResponse.json(
           { error: "Unsupported file type. Use PDF or DOCX." },
           { status: 400 },
@@ -73,7 +76,13 @@ export async function POST(request: NextRequest) {
       fileName = file.name;
       mimeType = file.type || "application/octet-stream";
       fileBuffer = Buffer.from(await file.arrayBuffer());
-      resumeText = await extractTextFromFile(fileBuffer, format);
+
+      const pageCheck = await validateResumePageCount(fileBuffer, fileFormat);
+      if (!pageCheck.ok) {
+        return NextResponse.json({ error: pageCheck.message }, { status: 400 });
+      }
+
+      resumeText = await extractTextFromFile(fileBuffer, fileFormat);
     } else {
       return NextResponse.json(
         { error: "Upload a resume file." },
@@ -93,7 +102,21 @@ export async function POST(request: NextRequest) {
     }
 
     const jobContext = parseJobContextFromFormData(formData);
-    const feedback = await analyzeResume(resumeText, jobContext);
+    let pageImages: Awaited<ReturnType<typeof renderPdfPageImages>> | undefined;
+    if (fileBuffer && fileFormat === "pdf") {
+      try {
+        pageImages = await renderPdfPageImages(fileBuffer);
+      } catch (renderErr) {
+        console.error(
+          "PDF page render for vision failed; analyzing with text only:",
+          renderErr,
+        );
+      }
+    }
+    const feedback = await analyzeResume(resumeText, {
+      jobContext,
+      pageImages,
+    });
 
     let scanId: string | undefined;
     if (session?.user?.id && fileBuffer) {

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { LegendSwatch } from "@/components/LegendSwatch";
 import { buildHighlightSegments } from "@/lib/highlights";
 import { ANNOTATION_STYLES } from "@/lib/annotationStyles";
+import { AnnotationTooltip } from "@/components/AnnotationTooltip";
 import { ResumeViewerActions } from "@/components/ResumeViewerActions";
 import type { Annotation } from "@/types/feedback";
 
@@ -50,6 +51,11 @@ export function HighlightedResume({
   showAdvancedDot = false,
 }: Props) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [tooltipAnchor, setTooltipAnchor] = useState<HTMLElement | null>(null);
+  const [tooltipMeta, setTooltipMeta] = useState<{
+    type: Annotation["type"];
+    feedback: string;
+  } | null>(null);
 
   const { segments, annotationIndexBySpan } = useMemo(() => {
     const segments = buildHighlightSegments(resumeText, annotations);
@@ -115,13 +121,28 @@ export function HighlightedResume({
               role="button"
               tabIndex={0}
               className={`cursor-pointer rounded px-0.5 ring-2 ring-transparent transition ${style.bg} ${isActive ? style.ring : ""}`}
-              title={segment.annotation.feedback}
-              onMouseEnter={() => setHoveredIndex(annIndex)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => onSelectAnnotation(annIndex)}
+              onMouseEnter={(e) => {
+                setHoveredIndex(annIndex);
+                setTooltipAnchor(e.currentTarget);
+                setTooltipMeta({
+                  type: segment.annotation!.type,
+                  feedback: segment.annotation!.feedback,
+                });
+              }}
+              onMouseLeave={() => {
+                setHoveredIndex(null);
+                setTooltipAnchor(null);
+                setTooltipMeta(null);
+              }}
+              onClick={(e) => {
+                onSelectAnnotation(annIndex);
+                e.currentTarget.focus({ preventScroll: true });
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
                   onSelectAnnotation(annIndex);
+                  e.currentTarget.focus({ preventScroll: true });
                 }
               }}
             >
@@ -130,6 +151,14 @@ export function HighlightedResume({
           );
         })}
       </pre>
+      {tooltipMeta && (
+        <AnnotationTooltip
+          anchorEl={tooltipAnchor}
+          visible={tooltipAnchor !== null}
+          type={tooltipMeta.type}
+          feedback={tooltipMeta.feedback}
+        />
+      )}
     </div>
   );
 }

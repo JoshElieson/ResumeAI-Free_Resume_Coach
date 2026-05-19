@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AuthButton } from "@/components/AuthButton";
 import { ScanHistory } from "@/components/ScanHistory";
+import { ScanHistoryPlaceholder } from "@/components/ScanHistoryPlaceholder";
 import { SignInPrompt } from "@/components/SignInPrompt";
 import { SocialLinks } from "@/components/SocialLinks";
 import { FeedbackPanel } from "@/components/FeedbackPanel";
@@ -18,6 +19,8 @@ import {
   loadJobContextFromStorage,
   saveJobContextToStorage,
 } from "@/lib/jobContext";
+import { readJsonResponse } from "@/lib/readJsonResponse";
+import { validateResumePageCountClient } from "@/lib/validateResumePagesClient";
 import {
   clearActiveScanId,
   clearGuestView,
@@ -109,9 +112,16 @@ export default function Home() {
   }
 
   async function handleAnalyze(file: File) {
-    setLoading(true);
     setError(null);
     setShowSignInPrompt(false);
+
+    const pageCheck = await validateResumePageCountClient(file);
+    if (!pageCheck.ok) {
+      setError(pageCheck.message);
+      return;
+    }
+
+    setLoading(true);
     setActiveIndex(null);
     setActiveScanId(null);
     clearGuestView();
@@ -129,7 +139,13 @@ export default function Home() {
         body: formData,
       });
 
-      const data = await res.json();
+      const data = await readJsonResponse<{
+        error?: string;
+        resumeText: string;
+        feedback: AnalysisResult["feedback"];
+        scanId?: string;
+        rateLimit?: { promptSignIn?: boolean };
+      }>(res);
       if (!res.ok) {
         throw new Error(data.error ?? "Analysis failed");
       }
@@ -188,7 +204,14 @@ export default function Home() {
         fetch(`/api/scans/${scanId}/file`),
       ]);
 
-      const scanData = await scanRes.json();
+      const scanData = await readJsonResponse<{
+        error?: string;
+        scan: AnalysisResult & {
+          id: string;
+          fileName: string;
+          mimeType: string;
+        };
+      }>(scanRes);
       if (!scanRes.ok) {
         throw new Error(scanData.error ?? "Could not load scan");
       }
@@ -226,8 +249,28 @@ export default function Home() {
     }
   }, []);
 
+  function handleResolveAnnotation(index: number) {
+    setResult((prev) => {
+      if (!prev) return prev;
+      const annotations = prev.feedback.annotations.filter((_, i) => i !== index);
+      const next: AnalysisResult = {
+        ...prev,
+        feedback: { ...prev.feedback, annotations },
+      };
+      if (!session?.user) {
+        saveGuestView(next);
+      }
+      return next;
+    });
+    setActiveIndex((prev) => {
+      if (prev === null) return null;
+      if (prev === index) return null;
+      if (prev > index) return prev - 1;
+      return prev;
+    });
+  }
+
   const showResults = Boolean(result);
-  const showHistory = isSignedIn;
   const viewMode =
     showResults || loadingScan || restoringView ? "results" : "upload";
   const headerTagline = isSignedIn
@@ -316,15 +359,15 @@ export default function Home() {
 
   return (
     <main className="app-bg flex min-h-dvh flex-col">
-      <header className="shrink-0 border-b border-white/10 bg-navy-mid/80 backdrop-blur-md">
+      <header className="relative z-[100] shrink-0 overflow-visible border-b border-white/10 bg-navy-mid/80 backdrop-blur-md">
         <div
           className={`mx-auto w-full px-4 py-5 sm:px-6 ${
-            showResults && showHistory ? "max-w-[96rem]" : "max-w-7xl"
+            showResults ? "max-w-[96rem]" : "max-w-7xl"
           }`}
         >
           <div
             className={
-              showResults && showHistory
+              showResults
                 ? "flex gap-6"
                 : "flex w-full items-center justify-between gap-6"
             }
@@ -335,15 +378,15 @@ export default function Home() {
               </h1>
               <p className="mt-1 text-sm text-muted">{headerTagline}</p>
             </div>
-            {showResults && showHistory ? (
+            {showResults ? (
               <div className="grid min-w-0 flex-1 gap-6 xl:max-w-7xl xl:grid-cols-[1fr_380px] xl:items-center">
                 <div aria-hidden className="hidden xl:block" />
-                <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+                <div className="relative z-[110] flex shrink-0 flex-wrap items-center justify-end gap-3">
                   <AuthButton />
                 </div>
               </div>
             ) : (
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
+              <div className="relative z-[110] flex shrink-0 flex-wrap items-center justify-end gap-3">
                 <AuthButton />
               </div>
             )}
@@ -352,8 +395,8 @@ export default function Home() {
       </header>
 
       <section
-        className={`mx-auto flex min-h-0 w-full flex-1 flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 ${
-          showResults && showHistory ? "max-w-[96rem]" : "max-w-7xl"
+        className={`relative z-0 mx-auto flex min-h-0 w-full flex-1 flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6 ${
+          showResults ? "max-w-[96rem]" : "max-w-7xl"
         }`}
       >
         {error && showResults && (
@@ -405,17 +448,21 @@ export default function Home() {
           <div className="app-card flex min-h-[480px] flex-1 items-center justify-center text-sm text-muted">
             Restoring your scan…
           </div>
-        ) : showHistory ? (
+        ) : (
           <div className="flex min-h-0 flex-1 gap-6">
             <div className="flex w-[17rem] shrink-0 flex-col gap-4 self-start">
-              <ScanHistory
-                activeScanId={activeScanId}
-                refreshKey={historyRefreshKey}
-                onSelect={(id) => void loadSavedScan(id)}
-                onScanDeleted={(id) => {
-                  if (id === activeScanId) resetView();
-                }}
-              />
+              {isSignedIn ? (
+                <ScanHistory
+                  activeScanId={activeScanId}
+                  refreshKey={historyRefreshKey}
+                  onSelect={(id) => void loadSavedScan(id)}
+                  onScanDeleted={(id) => {
+                    if (id === activeScanId) resetView();
+                  }}
+                />
+              ) : (
+                <ScanHistoryPlaceholder />
+              )}
               <OverallFeedbackCard feedback={result!.feedback} />
             </div>
             <ResultsColumns
@@ -444,6 +491,7 @@ export default function Home() {
                   feedback={result!.feedback}
                   activeIndex={activeIndex}
                   onSelectAnnotation={setActiveIndex}
+                  onResolveAnnotation={handleResolveAnnotation}
                   activeScanId={activeScanId}
                   historyRefreshKey={historyRefreshKey}
                   sessionPreviousScore={sessionPreviousScore}
@@ -453,42 +501,6 @@ export default function Home() {
               }
             />
           </div>
-        ) : (
-          <ResultsColumns
-            className="overflow-auto"
-            resume={
-              loadingScan ? (
-                <div className="app-card flex min-h-[480px] items-center justify-center text-sm text-muted">
-                  Loading saved scan…
-                </div>
-              ) : (
-                <ResumeViewer
-                  pdfFile={uploadedFile}
-                  resumeText={result!.resumeText}
-                  annotations={result!.feedback.annotations}
-                  activeIndex={activeIndex}
-                  onSelectAnnotation={setActiveIndex}
-                  onAnalyzeFile={(file) => void handleAnalyze(file)}
-                  onOpenAdvanced={() => setAdvancedOpen(true)}
-                  analyzing={loading}
-                  showAdvancedDot={hasJobSearchContext(jobContext)}
-                />
-              )
-            }
-            sidebar={
-              <FeedbackPanel
-                feedback={result!.feedback}
-                activeIndex={activeIndex}
-                onSelectAnnotation={setActiveIndex}
-                activeScanId={activeScanId}
-                historyRefreshKey={historyRefreshKey}
-                sessionPreviousScore={sessionPreviousScore}
-                showOverallFeedback
-                jobContext={jobContext}
-                resumeText={result!.resumeText}
-              />
-            }
-          />
         )}
       </section>
 

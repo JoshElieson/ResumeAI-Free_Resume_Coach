@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { validateResumePageCountClient } from "@/lib/validateResumePagesClient";
 
 type Props = {
   onAnalyze: (file: File) => void;
@@ -11,14 +12,42 @@ type Props = {
 
 export function UploadForm({ onAnalyze, loading, embedded = false }: Props) {
   const [file, setFile] = useState<File | null>(null);
+  const [pageWarning, setPageWarning] = useState<string | null>(null);
+  const [checkingPages, setCheckingPages] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPageWarning(null);
+      setCheckingPages(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCheckingPages(true);
+    setPageWarning(null);
+
+    void validateResumePageCountClient(file).then((result) => {
+      if (cancelled) return;
+      setCheckingPages(false);
+      if (!result.ok) {
+        setPageWarning(result.message);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (file) {
+    if (file && !pageWarning && !checkingPages) {
       onAnalyze(file);
     }
   }
+
+  const submitDisabled = loading || !file || checkingPages || Boolean(pageWarning);
 
   return (
     <form
@@ -42,7 +71,7 @@ export function UploadForm({ onAnalyze, loading, embedded = false }: Props) {
           {file ? file.name : "Drop or click to upload"}
         </span>
         <span className="mt-2 text-center text-sm text-muted">
-          PDF or DOCX — max 5 MB
+          PDF or DOCX — max 5 MB, up to 3 pages
         </span>
         <input
           ref={inputRef}
@@ -54,9 +83,24 @@ export function UploadForm({ onAnalyze, loading, embedded = false }: Props) {
         />
       </label>
 
+      {checkingPages && file && (
+        <p className="mt-4 text-center text-sm text-muted" role="status">
+          Checking page count…
+        </p>
+      )}
+
+      {pageWarning && (
+        <div
+          className="mt-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+          role="alert"
+        >
+          {pageWarning}
+        </div>
+      )}
+
       <button
         type="submit"
-        disabled={loading || !file}
+        disabled={submitDisabled}
         className="btn-primary mt-6 w-full shrink-0"
       >
         {loading ? "Analyzing with AI…" : "Get AI feedback"}

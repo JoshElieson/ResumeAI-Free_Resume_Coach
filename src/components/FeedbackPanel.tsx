@@ -1,9 +1,20 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { OverallFeedbackCard } from "@/components/OverallFeedbackCard";
 import { ResumeChatbot } from "@/components/ResumeChatbot";
+import {
+  formatAnnotationForChat,
+  MAX_COPIED_COMMENTS,
+} from "@/lib/chatCompose";
 import { formatScoreDelta, getPreviousScanScore } from "@/lib/scanComparison";
 import { getScoreTier, scoreBarGlow } from "@/lib/scoreScale";
 import type { Annotation, FeedbackResponse } from "@/types/feedback";
@@ -21,6 +32,9 @@ const ALL_SECTION_TYPES: Annotation["type"][] = [
   "weakness",
   "suggestion",
 ];
+
+/** Gap above the selected note when scrolling inline notes (px). */
+const NOTE_SCROLL_TOP_OFFSET = 16;
 
 function allSectionsCollapsed(): Set<Annotation["type"]> {
   return new Set(ALL_SECTION_TYPES);
@@ -65,10 +79,49 @@ function ChevronIcon({ open }: { open: boolean }) {
   );
 }
 
+function CopyToChatIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+      />
+    </svg>
+  );
+}
+
+function ResolveNoteIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+  );
+}
+
 type Props = {
   feedback: FeedbackResponse;
   activeIndex: number | null;
   onSelectAnnotation: (index: number) => void;
+  onResolveAnnotation: (index: number) => void;
   activeScanId?: string | null;
   historyRefreshKey?: number;
   /** Last score from this browser session (signed-out users). */
@@ -112,6 +165,7 @@ export function FeedbackPanel({
   feedback,
   activeIndex,
   onSelectAnnotation,
+  onResolveAnnotation,
   activeScanId,
   historyRefreshKey = 0,
   sessionPreviousScore = null,
@@ -124,6 +178,28 @@ export function FeedbackPanel({
   const [collapsedSections, setCollapsedSections] = useState<
     Set<Annotation["type"]>
   >(() => allSectionsCollapsed());
+  const [copiedComments, setCopiedComments] = useState<string[]>([]);
+  const [copyWarning, setCopyWarning] = useState<string | null>(null);
+  const notesScrollRef = useRef<HTMLDivElement>(null);
+  const noteItemRefs = useRef<Map<number, HTMLLIElement>>(new Map());
+  const pendingNoteScrollIndex = useRef<number | null>(null);
+
+  const scrollActiveNoteToTop = useCallback((index: number) => {
+    const container = notesScrollRef.current;
+    const item = noteItemRefs.current.get(index);
+    if (!container || !item) return;
+
+    const scrollTop = Math.max(
+      0,
+      item.getBoundingClientRect().top -
+        container.getBoundingClientRect().top +
+        container.scrollTop -
+        NOTE_SCROLL_TOP_OFFSET,
+    );
+
+    container.scrollTo({ top: scrollTop, behavior: "smooth" });
+  }, []);
+
   const groupedNotes = useMemo(() => {
     const groups: Record<Annotation["type"], GroupedNote[]> = {
       strength: [],
@@ -190,6 +266,52 @@ export function FeedbackPanel({
     setCollapsedSections(allSectionsCollapsed());
   }, [feedback]);
 
+  useEffect(() => {
+    if (!copyWarning) return;
+    const id = window.setTimeout(() => setCopyWarning(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [copyWarning]);
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const ann = feedback.annotations[activeIndex];
+    if (!ann) return;
+
+    pendingNoteScrollIndex.current = activeIndex;
+
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      next.delete(ann.type);
+      return next;
+    });
+  }, [activeIndex, feedback.annotations]);
+
+  useLayoutEffect(() => {
+    const index = pendingNoteScrollIndex.current;
+    if (index === null) return;
+    if (!noteItemRefs.current.has(index)) return;
+
+    scrollActiveNoteToTop(index);
+    pendingNoteScrollIndex.current = null;
+  }, [activeIndex, collapsedSections, scrollActiveNoteToTop]);
+
+  function handleCopyNoteToChat(ann: Annotation) {
+    const text = formatAnnotationForChat(ann);
+    setCopiedComments((prev) => {
+      if (prev.length >= MAX_COPIED_COMMENTS) {
+        setCopyWarning(
+          `You can copy up to ${MAX_COPIED_COMMENTS} comments at a time.`,
+        );
+        return prev;
+      }
+      if (prev.includes(text)) {
+        return prev;
+      }
+      setCopyWarning(null);
+      return [...prev, text];
+    });
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       <div className="app-card shrink-0 p-6">
@@ -235,13 +357,22 @@ export function FeedbackPanel({
         hasResumeContext={Boolean(resumeText)}
         jobContext={jobContext}
         resumeText={resumeText}
+        copiedComments={copiedComments}
+        onCopiedCommentsChange={setCopiedComments}
+        onRemoveCopiedComment={(index) =>
+          setCopiedComments((prev) => prev.filter((_, i) => i !== index))
+        }
+        copyWarning={copyWarning}
       />
 
       <div className="app-card flex min-h-0 flex-1 flex-col overflow-hidden p-6">
         <h2 className="shrink-0 text-lg font-semibold text-foreground">
           Inline notes ({feedback.annotations.length})
         </h2>
-        <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto">
+        <div
+          ref={notesScrollRef}
+          className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain"
+        >
           {NOTE_SECTIONS.map(({ type, label, headerClass }) => {
             const items = groupedNotes[type];
             const isOpen = !collapsedSections.has(type);
@@ -271,23 +402,65 @@ export function FeedbackPanel({
                       </li>
                     ) : (
                       items.map(({ ann, index }) => (
-                          <li key={index}>
-                            <button
-                              type="button"
-                              onClick={() => onSelectAnnotation(index)}
-                              className={`w-full rounded-lg border border-white/5 border-l-4 bg-surface-elevated/80 p-3 text-left transition hover:bg-surface-elevated ${TYPE_BORDER[ann.type]} ${
+                          <li
+                            key={index}
+                            ref={(el) => {
+                              if (el) {
+                                noteItemRefs.current.set(index, el);
+                              } else {
+                                noteItemRefs.current.delete(index);
+                              }
+                            }}
+                          >
+                            <div
+                              className={`flex gap-1 rounded-lg border border-white/5 border-l-4 bg-surface-elevated/80 transition hover:bg-surface-elevated ${TYPE_BORDER[ann.type]} ${
                                 activeIndex === index
                                   ? "ring-2 ring-accent shadow-[0_0_20px_-6px_rgb(109_94_245_/_0.5)]"
                                   : ""
                               }`}
                             >
-                              <p className="text-sm font-medium text-foreground">
-                                &ldquo;{ann.text}&rdquo;
-                              </p>
-                              <p className="mt-2 border-t border-white/5 pt-2 text-sm text-muted">
-                                {ann.feedback}
-                              </p>
-                            </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  onSelectAnnotation(index);
+                                  e.currentTarget.focus({ preventScroll: true });
+                                }}
+                                className="min-w-0 flex-1 p-3 text-left"
+                              >
+                                <p className="text-sm font-medium text-foreground">
+                                  &ldquo;{ann.text}&rdquo;
+                                </p>
+                                <p className="mt-2 border-t border-white/5 pt-2 text-sm text-muted">
+                                  {ann.feedback}
+                                </p>
+                              </button>
+                              <div className="flex shrink-0 flex-col justify-between py-2 pr-2">
+                                <button
+                                  type="button"
+                                  title="Copy to ResumeAI Chatbot"
+                                  aria-label="Copy to ResumeAI Chatbot"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyNoteToChat(ann);
+                                  }}
+                                  className="rounded-md p-1.5 text-muted transition hover:bg-white/10 hover:text-foreground"
+                                >
+                                  <CopyToChatIcon />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Resolve comment"
+                                  aria-label="Resolve comment"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onResolveAnnotation(index);
+                                  }}
+                                  className="rounded-md p-1.5 text-muted transition hover:bg-white/10 hover:text-emerald-400"
+                                >
+                                  <ResolveNoteIcon />
+                                </button>
+                              </div>
+                            </div>
                           </li>
                         ))
                     )}

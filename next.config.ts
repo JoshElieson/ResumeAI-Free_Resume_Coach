@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   // Use this project folder as root (avoids parent lockfile confusing webpack)
   outputFileTracingRoot: path.join(__dirname),
-  serverExternalPackages: ["pdfjs-dist"],
+  serverExternalPackages: ["pdfjs-dist", "@napi-rs/canvas"],
   webpack: (config, { dev, isServer }) => {
     config.resolve.alias.canvas = false;
 

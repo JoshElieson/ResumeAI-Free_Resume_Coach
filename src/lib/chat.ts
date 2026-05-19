@@ -4,8 +4,21 @@ import type { JobSearchContext } from "@/types/jobContext";
 
 export type ChatMessage = {
   role: "user" | "assistant";
+  /** Visible message text in the chat UI (user-typed only). */
   content: string;
+  /** Full payload sent to the API when copied resume notes are attached. */
+  apiContent?: string;
+  /** Copied inline resume notes attached to this user message (for UI previews). */
+  copiedComments?: string[];
 };
+
+/** Text to include in API history for a stored message. */
+export function chatMessageForApi(message: ChatMessage): ChatMessage {
+  if (message.role === "user" && message.apiContent) {
+    return { role: "user", content: message.apiContent };
+  }
+  return { role: message.role, content: message.content };
+}
 
 const SYSTEM_PROMPT = `You are a resume and career coach in a small chat panel. Keep every reply short.
 

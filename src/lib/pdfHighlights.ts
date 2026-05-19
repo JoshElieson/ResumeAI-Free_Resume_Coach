@@ -1,4 +1,5 @@
 import { findTextSpan } from "@/lib/highlights";
+import { appendVisionHighlights } from "@/lib/visionHighlights";
 import {
   buildPageTextFromItems,
   sortItemsReadingOrder,
@@ -163,6 +164,27 @@ function clampBox(box: Box, viewport: PdfViewport): Box {
   };
 }
 
+/** Start index in page.text where this item's PDF string begins (skips synthetic spacing). */
+function itemContentStart(
+  range: { start: number; end: number },
+  itemStr: string,
+): number {
+  return range.end - itemStr.length;
+}
+
+function offsetsInItemStr(
+  item: TextItem,
+  range: { start: number; end: number },
+  overlapStart: number,
+  overlapEnd: number,
+): { start: number; end: number } | null {
+  const contentStart = itemContentStart(range, item.str);
+  const start = Math.max(0, overlapStart - contentStart);
+  const end = Math.min(item.str.length, overlapEnd - contentStart);
+  if (start >= end) return null;
+  return { start, end };
+}
+
 function normalizeQuote(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -263,12 +285,19 @@ function lineBoxesForSpan(
 
       const overlapStart = Math.max(line.start, range.start);
       const overlapEnd = Math.min(line.end, range.end);
-      const slice = page.text.slice(overlapStart, overlapEnd);
-      if (!slice) continue;
+      const offsets = offsetsInItemStr(
+        item,
+        range,
+        overlapStart,
+        overlapEnd,
+      );
+      if (!offsets) continue;
 
-      const prefix = page.text.slice(range.start, overlapStart);
+      const prefix = item.str.slice(0, offsets.start);
+      const slice = item.str.slice(offsets.start, offsets.end);
       const left =
-        item.box.left + measureTextWidth(prefix, item.fontSize, item.fontFamily);
+        item.box.left +
+        measureTextWidth(prefix, item.fontSize, item.fontFamily);
       const width = measureTextWidth(slice, item.fontSize, item.fontFamily);
       const right = left + width;
 
@@ -361,8 +390,24 @@ export async function findPdfHighlights(
   }
 
   const all: NormalizedHighlight[] = [];
+  const visionCovered = new Set<number>();
+  const pageViewportSizes = new Map(
+    pages.map((page) => [
+      page.pageNumber,
+      { width: page.viewport.width, height: page.viewport.height },
+    ]),
+  );
+
+  appendVisionHighlights(
+    annotations,
+    pageViewportSizes,
+    all,
+    visionCovered,
+  );
 
   annotations.forEach((annotation, annotationIndex) => {
+    if (visionCovered.has(annotationIndex)) return;
+
     let bestPage: PageTextData | null = null;
     let bestSpan: { start: number; end: number } | null = null;
     let bestScore = Infinity;

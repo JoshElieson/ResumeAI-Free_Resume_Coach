@@ -9,8 +9,13 @@ export type PdfViewport = {
   transform: number[];
 };
 
+export type PdfDocumentSource =
+  | string
+  | { url: string }
+  | { data: ArrayBuffer | Uint8Array };
+
 export type PdfJsLib = {
-  getDocument: (src: string | { url: string }) => {
+  getDocument: (src: PdfDocumentSource) => {
     promise: Promise<PdfDocument>;
   };
   GlobalWorkerOptions: { workerSrc: string };
