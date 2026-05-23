@@ -6,7 +6,7 @@ The app is designed as a lightweight resume coach: users can analyze their resum
 
 ## Live Site
 
-[ResumeAI](https://your-live-link-here.com)
+[ResumeAI](https://resume-ai-free-resume-coach.vercel.app/)
 
 ## Why I Built It
 
