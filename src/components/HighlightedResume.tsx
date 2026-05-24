@@ -13,18 +13,18 @@ const TYPE_STYLES: Record<
   { bg: string; ring: string; label: string }
 > = {
   strength: {
-    bg: "bg-emerald-400/35 hover:bg-emerald-400/50",
-    ring: "ring-emerald-400",
+    bg: "bg-emerald-600/35 hover:bg-emerald-600/45",
+    ring: "ring-emerald-600",
     label: "Strength",
   },
   weakness: {
-    bg: "bg-rose-400/35 hover:bg-rose-400/50",
-    ring: "ring-rose-400",
+    bg: "bg-rose-600/32 hover:bg-rose-600/42",
+    ring: "ring-rose-600",
     label: "Needs work",
   },
   suggestion: {
-    bg: "bg-amber-400/35 hover:bg-amber-400/50",
-    ring: "ring-amber-400",
+    bg: "bg-amber-600/35 hover:bg-amber-600/45",
+    ring: "ring-amber-600",
     label: "Suggestion",
   },
 };
@@ -102,7 +102,7 @@ export function HighlightedResume({
           />
         )}
       </div>
-      <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words bg-surface-elevated/40 p-5 font-mono text-sm leading-relaxed text-foreground/90">
+      <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words bg-surface-elevated p-5 font-mono text-sm leading-relaxed text-foreground">
         {segments.map((segment, i) => {
           if (!segment.annotation) {
             return <span key={i}>{segment.text}</span>;

@@ -157,7 +157,7 @@ export function ScanHistory({
   return (
     <aside className={cardClass}>
       <div
-        className={`px-4 py-3 ${embedded ? "border-b border-white/10" : "app-card-header"}`}
+        className={`px-4 py-3 ${embedded ? "border-b border-border" : "app-card-header"}`}
       >
         {embedded ? (
           <h2 className="text-sm font-semibold text-foreground">Previous Scans</h2>
@@ -166,13 +166,13 @@ export function ScanHistory({
             className="flex items-center justify-between gap-2"
             aria-label="Scan history sections"
           >
-            <span className="rounded-md bg-accent/15 px-2.5 py-1 text-sm font-semibold text-foreground">
+            <span className="rounded-md bg-accent-muted px-2.5 py-1 text-sm font-semibold text-foreground">
               Your scans
             </span>
             <button
               type="button"
               onClick={() => setCompareOpen(true)}
-              className="rounded-md px-2.5 py-1 text-sm font-medium text-muted transition hover:bg-white/5 hover:text-foreground"
+              className="rounded-md px-2.5 py-1 text-sm font-medium text-muted transition hover:bg-subtle hover:text-foreground"
             >
               Compare Scans
             </button>
@@ -187,7 +187,7 @@ export function ScanHistory({
         }
       >
         {error && (
-          <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2 py-2 text-xs text-rose-300">
+          <p className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-2 text-xs text-rose-700">
             {error}
           </p>
         )}
@@ -223,8 +223,8 @@ export function ScanHistory({
                   disabled={!isSignedIn || isDeleting}
                   className={`min-w-0 flex-1 cursor-pointer overflow-hidden rounded-lg border px-3 py-2.5 text-left transition ${
                     isActive
-                      ? "border-accent/50 bg-[#1e1c38] hover:bg-[#252347]"
-                      : "border-white/5 bg-[#151d2e] hover:border-white/15 hover:bg-[#1a2438]"
+                      ? "border-accent/40 bg-accent-muted hover:bg-accent-muted/80"
+                      : "border-border bg-surface-elevated hover:border-border hover:bg-subtle"
                   } disabled:cursor-not-allowed disabled:opacity-60`}
                 >
                   <p className="truncate text-sm font-medium text-foreground">
@@ -248,7 +248,7 @@ export function ScanHistory({
                     onClick={() => requestDelete(scan)}
                     disabled={isDeleting}
                     aria-label={`Delete ${scan.fileName}`}
-                    className="flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-white/5 bg-[#151d2e] px-2 text-muted transition hover:border-rose-500/40 hover:bg-[#2a1a22] hover:text-rose-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-border bg-surface px-2 text-muted transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <TrashIcon />
                   </button>

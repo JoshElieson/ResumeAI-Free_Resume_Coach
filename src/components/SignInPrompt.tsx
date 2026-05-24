@@ -16,7 +16,7 @@ export function SignInPrompt({ open, onDismiss }: Props) {
       aria-labelledby="sign-in-prompt-title"
       className="shrink-0 w-full"
     >
-      <div className="app-card flex flex-col gap-3 border-accent/30 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="app-card flex flex-col gap-3 border-accent/25 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           <p
             id="sign-in-prompt-title"
@@ -34,7 +34,7 @@ export function SignInPrompt({ open, onDismiss }: Props) {
           <button
             type="button"
             onClick={onDismiss}
-            className="rounded-md p-1 text-muted transition-colors hover:bg-white/10 hover:text-foreground"
+            className="rounded-md p-1 text-muted transition-colors hover:bg-subtle-hover hover:text-foreground"
             aria-label="Dismiss"
           >
             <svg

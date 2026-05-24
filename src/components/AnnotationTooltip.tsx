@@ -87,12 +87,12 @@ export function AnnotationTooltip({
       }}
     >
       <div
-        className="relative overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 shadow-2xl shadow-black/50 backdrop-blur-md"
-        style={{ boxShadow: `0 8px 32px -4px rgb(0 0 0 / 0.5), 0 0 0 1px ${styleMeta.ring}33 inset` }}
+        className="relative overflow-hidden rounded-xl border border-border bg-surface shadow-lg shadow-neutral-900/10"
+        style={{ boxShadow: `0 8px 24px -6px rgb(31 35 40 / 0.12), 0 0 0 1px ${styleMeta.ring}22 inset` }}
       >
         {coords && (
           <span
-            className="absolute left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border border-white/10 bg-slate-900/95"
+            className="absolute left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border border-border bg-surface"
             style={
               coords.placement === "below"
                 ? { top: -5, borderBottom: "none", borderRight: "none" }
@@ -107,7 +107,7 @@ export function AnnotationTooltip({
           >
             {styleMeta.label}
           </span>
-          <p className="text-sm leading-relaxed text-slate-100">{feedback}</p>
+          <p className="text-sm leading-relaxed text-foreground">{feedback}</p>
         </div>
       </div>
     </div>,

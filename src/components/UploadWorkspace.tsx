@@ -55,7 +55,7 @@ export function UploadWorkspace({
       } ${className}`}
     >
       <nav
-        className="flex w-28 shrink-0 flex-col self-stretch border-r border-white/10 bg-surface-elevated/50 sm:w-36"
+        className="flex w-28 shrink-0 flex-col self-stretch border-r border-border bg-surface-elevated sm:w-36"
         aria-label="Upload sections"
       >
         {tabs.map((item) => {
@@ -69,8 +69,8 @@ export function UploadWorkspace({
               onClick={() => setTab(item.id)}
               className={`border-l-2 px-3 py-4 text-left text-xs font-medium transition sm:px-4 sm:text-sm ${
                 active
-                  ? "border-accent bg-accent/10 text-foreground"
-                  : "border-transparent text-muted hover:bg-white/5 hover:text-foreground"
+                  ? "border-accent bg-accent-muted text-foreground"
+                  : "border-transparent text-muted hover:bg-subtle hover:text-foreground"
               }`}
             >
               <span className="flex items-center gap-2">

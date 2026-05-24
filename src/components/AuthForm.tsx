@@ -84,7 +84,7 @@ export function AuthForm({ mode, callbackUrl = "/" }: Props) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="rounded-lg border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/20"
+          className="input-field w-full"
         />
       </label>
 
@@ -97,7 +97,7 @@ export function AuthForm({ mode, callbackUrl = "/" }: Props) {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/20"
+          className="input-field w-full"
         />
         {isRegister && (
           <span className="text-xs text-muted">At least 8 characters</span>
@@ -105,7 +105,7 @@ export function AuthForm({ mode, callbackUrl = "/" }: Props) {
       </label>
 
       {error && (
-        <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-300">
+        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {error}
         </p>
       )}

@@ -658,7 +658,7 @@ export function PdfResumeViewer({
 
         wrap.className =
 
-          "relative mx-auto overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10";
+          "relative mx-auto overflow-hidden shadow-lg shadow-neutral-900/10 ring-1 ring-border";
 
         wrap.style.width = "100%";
 
@@ -916,7 +916,7 @@ export function PdfResumeViewer({
 
         ref={containerRef}
 
-        className="bg-navy-mid/80 p-4 sm:p-6"
+        className="bg-subtle p-4 sm:p-6"
 
       >
 
@@ -956,7 +956,7 @@ export function PdfResumeViewer({
 
               type="button"
 
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-surface-elevated/80 text-foreground shadow-sm transition hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-40"
 
               disabled={currentPage <= 1 || pageRendering}
 
@@ -980,7 +980,7 @@ export function PdfResumeViewer({
 
               type="button"
 
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-surface-elevated/80 text-foreground shadow-sm transition hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-40"
 
               disabled={currentPage >= numPages || pageRendering}
 

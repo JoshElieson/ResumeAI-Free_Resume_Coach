@@ -163,7 +163,7 @@ function CreateAccountDropdown({
         width: MENU_WIDTH_PX,
         zIndex: 99999,
       }}
-      className="rounded-lg border border-white/10 bg-surface py-1 shadow-2xl shadow-black/50 ring-1 ring-white/10"
+      className="rounded-lg border border-border bg-surface py-1 shadow-lg shadow-neutral-900/10"
       onMouseEnter={openMenu}
       onMouseLeave={scheduleClose}
     >
@@ -171,7 +171,7 @@ function CreateAccountDropdown({
         type="button"
         role="menuitem"
         onClick={() => signIn("google", { callbackUrl })}
-        className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-white/5"
+        className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-subtle"
       >
         <GoogleIcon />
         Sign in with Google
@@ -179,7 +179,7 @@ function CreateAccountDropdown({
       <Link
         href={registerHref}
         role="menuitem"
-        className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-white/5"
+        className="flex items-center gap-2 px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-subtle"
       >
         <EmailIcon />
         Sign in with Email
@@ -188,7 +188,7 @@ function CreateAccountDropdown({
         Already have an account?{" "}
         <Link
           href={loginHref}
-          className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
+          className="font-medium text-accent hover:text-accent-deep hover:underline"
         >
           Sign in
         </Link>
@@ -209,7 +209,7 @@ function CreateAccountDropdown({
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="btn-primary inline-flex cursor-default items-center gap-1.5 px-4 py-2"
+        className="btn-primary inline-flex items-center gap-1.5 px-4 py-2"
       >
         Create an Account
         <ChevronIcon />
@@ -247,7 +247,7 @@ function UserAvatar({
         alt=""
         referrerPolicy="no-referrer"
         onError={() => setImageFailed(true)}
-        className="h-8 w-8 rounded-full object-cover ring-2 ring-accent/40"
+        className="h-8 w-8 rounded-full object-cover ring-2 ring-border"
       />
     );
   }
@@ -255,7 +255,7 @@ function UserAvatar({
   return (
     <div
       aria-hidden
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/20 text-xs font-semibold text-foreground ring-2 ring-accent/40"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-muted text-xs font-semibold text-accent ring-2 ring-border"
     >
       {initials}
     </div>

@@ -5,17 +5,17 @@ export type ScoreTier = {
 
 /** Index 0–10 maps to score floor (0 = Terrible … 10 = Exceptional). */
 export const SCORE_SCALE: readonly ScoreTier[] = [
-  { label: "Terrible", color: "#DC2626" },
-  { label: "Very Poor", color: "#EA580C" },
-  { label: "Poor", color: "#F97316" },
-  { label: "Weak", color: "#F59E0B" },
-  { label: "Below Average", color: "#EAB308" },
-  { label: "Fair", color: "#84CC16" },
-  { label: "Good", color: "#22C55E" },
-  { label: "Strong", color: "#10B981" },
-  { label: "Excellent", color: "#06B6D4" },
-  { label: "Outstanding", color: "#3B82F6" },
-  { label: "Exceptional", color: "#8B5CF6" },
+  { label: "Terrible", color: "#B42318" },
+  { label: "Very Poor", color: "#C4320A" },
+  { label: "Poor", color: "#CA6A04" },
+  { label: "Weak", color: "#B45309" },
+  { label: "Below Average", color: "#92710C" },
+  { label: "Fair", color: "#6B7C1E" },
+  { label: "Good", color: "#3F7A4A" },
+  { label: "Strong", color: "#2F6B4F" },
+  { label: "Excellent", color: "#2F5D50" },
+  { label: "Outstanding", color: "#285247" },
+  { label: "Exceptional", color: "#1F4A3F" },
 ] as const;
 
 export function getScoreTier(score: number): ScoreTier {
@@ -24,5 +24,5 @@ export function getScoreTier(score: number): ScoreTier {
 }
 
 export function scoreBarGlow(color: string): string {
-  return `0 0 12px -2px ${color}99`;
+  return `0 1px 3px ${color}33`;
 }

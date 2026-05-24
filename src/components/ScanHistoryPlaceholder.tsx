@@ -16,7 +16,7 @@ export function ScanHistoryPlaceholder() {
           className="flex items-center justify-between gap-2"
           aria-label="Scan history sections"
         >
-          <span className="rounded-md bg-accent/15 px-2.5 py-1 text-sm font-semibold text-foreground">
+          <span className="rounded-md bg-accent-muted px-2.5 py-1 text-sm font-semibold text-foreground">
             Your scans
           </span>
           <span
@@ -35,11 +35,11 @@ export function ScanHistoryPlaceholder() {
         <ul className="space-y-1 p-2 opacity-40" aria-hidden>
           {[0, 1, 2].map((i) => (
             <li key={i}>
-              <div className="rounded-lg border border-white/5 bg-[#151d2e] px-3 py-2.5">
-                <div className="h-4 w-3/4 rounded bg-white/10" />
+              <div className="rounded-lg border border-border bg-surface-elevated px-3 py-2.5">
+                <div className="h-4 w-3/4 rounded bg-subtle-hover" />
                 <div className="mt-2 flex justify-between gap-2">
-                  <div className="h-3 w-16 rounded bg-white/5" />
-                  <div className="h-3 w-8 rounded bg-white/5" />
+                  <div className="h-3 w-16 rounded bg-subtle" />
+                  <div className="h-3 w-8 rounded bg-subtle" />
                 </div>
               </div>
             </li>

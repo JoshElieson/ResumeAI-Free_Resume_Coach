@@ -169,8 +169,8 @@ export function ResumeViewer({
           <div
             className={`absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-2xl px-6 text-center backdrop-blur-sm ${
               dragOver
-                ? "border-2 border-dashed border-accent/70 bg-accent/15"
-                : "bg-navy/75"
+                ? "border-2 border-dashed border-accent/50 bg-accent-muted"
+                : "bg-navy/80"
             }`}
             role={analyzing ? "status" : undefined}
             aria-live={analyzing ? "polite" : undefined}
@@ -178,11 +178,11 @@ export function ResumeViewer({
             {analyzing ? (
               <>
                 <span
-                  className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-accent"
+                  className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-accent"
                   aria-hidden
                 />
                 <p className="text-sm font-medium text-foreground">
-                  Analyzing with AI…
+                  Analyzing…
                 </p>
                 <p className="text-xs text-muted">
                   This usually takes 15–30 seconds

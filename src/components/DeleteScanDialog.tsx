@@ -46,13 +46,13 @@ export function DeleteScanDialog({
         aria-label="Close"
         disabled={deleting}
         onClick={onCancel}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm disabled:cursor-not-allowed"
+        className="modal-overlay absolute inset-0 disabled:cursor-not-allowed"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-scan-title"
-        className="relative w-full max-w-md app-card p-6 shadow-xl shadow-black/40"
+        className="relative w-full max-w-md app-card p-6 shadow-lg shadow-neutral-900/10"
       >
         <h2
           id="delete-scan-title"
@@ -69,7 +69,7 @@ export function DeleteScanDialog({
             checked={dontAskAgain}
             disabled={deleting}
             onChange={(e) => onDontAskAgainChange(e.target.checked)}
-            className="h-4 w-4 rounded border-white/20 bg-surface-elevated text-accent focus:ring-2 focus:ring-accent/30 focus:ring-offset-0"
+            className="h-4 w-4 rounded border-border bg-surface text-accent focus:ring-2 focus:ring-accent/30 focus:ring-offset-0"
           />
           Don&apos;t ask again
         </label>
@@ -87,7 +87,7 @@ export function DeleteScanDialog({
             type="button"
             onClick={onConfirm}
             disabled={deleting}
-            className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-4 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-800 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>

@@ -15,7 +15,7 @@ const SAVE_DEBOUNCE_MS = 400;
 const SAVED_VISIBLE_MS = 2000;
 
 const fieldClass =
-  "w-full rounded-lg border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-60";
+  "input-field w-full disabled:cursor-not-allowed disabled:opacity-60";
 
 function SaveStatusIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
@@ -29,13 +29,13 @@ function SaveStatusIndicator({ status }: { status: SaveStatus }) {
       {status === "saving" ? (
         <>
           <span
-            className="h-3 w-3 animate-spin rounded-full border border-white/15 border-t-accent"
+            className="h-3 w-3 animate-spin rounded-full border border-border border-t-accent"
             aria-hidden
           />
           <span className="sr-only">Saving</span>
         </>
       ) : (
-        <span className="font-medium text-emerald-400">Saved</span>
+        <span className="font-medium text-emerald-700">Saved</span>
       )}
     </div>
   );

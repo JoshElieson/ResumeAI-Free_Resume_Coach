@@ -20,7 +20,7 @@ function CopiedCommentAttachment({ comment }: { comment: string }) {
   if (!preview) return null;
 
   return (
-    <div className="truncate rounded-md border border-accent/50 bg-accent/30 px-2 py-1 text-xs font-medium text-foreground">
+    <div className="truncate rounded-md border border-border bg-accent-muted px-2 py-1 text-xs font-medium text-foreground">
       {preview}
     </div>
   );
@@ -31,7 +31,7 @@ function UserChatBubble({ message }: { message: ChatMessage }) {
   const text = message.content.trim();
 
   return (
-    <div className="max-w-[90%] rounded-xl bg-accent/25 px-3 py-2 text-sm leading-relaxed text-foreground">
+    <div className="max-w-[90%] rounded-xl border border-border bg-subtle px-3 py-2 text-sm leading-relaxed text-foreground">
       {comments.length > 0 && (
         <div className="mb-2 flex flex-col gap-1">
           {comments.map((comment, index) => (
@@ -48,7 +48,7 @@ function TypingBubble() {
   return (
     <div className="flex justify-start">
       <div
-        className="max-w-[90%] rounded-xl border border-white/10 bg-surface-elevated/80 px-4 py-3 text-sm text-muted"
+        className="max-w-[90%] rounded-xl border border-border bg-surface-elevated px-4 py-3 text-sm text-muted"
         aria-label="Assistant is typing"
       >
         <span className="inline-flex gap-0.5">
@@ -192,7 +192,7 @@ export function ResumeChatbot({
 
   return (
     <aside
-      className={`app-card overflow-hidden shadow-lg shadow-black/30 ${layoutClass} ${className}`}
+      className={`app-card overflow-hidden ${layoutClass} ${className}`}
       style={lockedHeightStyle}
     >
       <div className="app-card-header shrink-0 px-4 py-3">
@@ -222,7 +222,7 @@ export function ResumeChatbot({
               {msg.role === "user" ? (
                 <UserChatBubble message={msg} />
               ) : (
-                <div className="max-w-[90%] rounded-xl border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm leading-relaxed text-foreground/90">
+                <div className="max-w-[90%] rounded-xl border border-border bg-surface-elevated px-3 py-2 text-sm leading-relaxed text-foreground">
                   {msg.content}
                 </div>
               )}
@@ -230,7 +230,7 @@ export function ResumeChatbot({
           ))}
           {sending && <TypingBubble />}
           {error && (
-            <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">
+            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
               {error}
             </p>
           )}
@@ -238,11 +238,11 @@ export function ResumeChatbot({
 
         <form
           onSubmit={handleSubmit}
-          className="shrink-0 border-t border-white/10 p-4"
+          className="shrink-0 border-t border-border p-4"
         >
           {copyWarning && (
             <p
-              className="mb-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+              className="mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800"
               role="alert"
             >
               {copyWarning}
@@ -255,7 +255,7 @@ export function ResumeChatbot({
                 return (
                 <div
                   key={index}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-accent/40 bg-accent/15 px-3 py-2"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-border bg-accent-muted px-3 py-2"
                 >
                   <span className="min-w-0 truncate text-sm font-medium text-foreground">
                     {preview || "Comment"}
@@ -266,7 +266,7 @@ export function ResumeChatbot({
                     aria-label={`Remove copied comment: ${preview || "comment"}`}
                     disabled={sending}
                     onClick={() => onRemoveCopiedComment?.(index)}
-                    className="rounded-md p-1 text-muted transition hover:bg-white/10 hover:text-foreground disabled:opacity-50"
+                    className="rounded-md p-1 text-muted transition hover:bg-subtle-hover hover:text-foreground disabled:opacity-50"
                   >
                     <svg
                       className="h-4 w-4"
@@ -304,7 +304,7 @@ export function ResumeChatbot({
               inputLocked ? UPLOAD_LOCKED_PLACEHOLDER : "Type a message…"
             }
             rows={2}
-            className={`w-full resize-none rounded-lg border border-white/10 bg-surface-elevated/80 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent/20 ${
+            className={`input-field w-full resize-none ${
               inputLocked ? "cursor-not-allowed opacity-60" : ""
             }`}
           />

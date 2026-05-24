@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AuthButton } from "@/components/AuthButton";
@@ -44,7 +45,7 @@ const ResumeViewer = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-[480px] items-center justify-center rounded-2xl border border-white/10 bg-surface text-sm text-muted">
+      <div className="app-card flex min-h-[480px] items-center justify-center text-sm text-muted">
         Loading resume viewer…
       </div>
     ),
@@ -358,9 +359,9 @@ export default function Home() {
 
   return (
     <main className="app-bg flex min-h-dvh flex-col">
-      <header className="relative z-[100] shrink-0 overflow-visible border-b border-white/10 bg-navy-mid/80 backdrop-blur-md">
+      <header className="relative z-[100] shrink-0 overflow-visible border-b border-border bg-navy">
         <div
-          className={`mx-auto w-full px-4 py-5 sm:px-6 ${
+          className={`mx-auto w-full px-4 py-4 sm:px-6 sm:py-5 ${
             showResults ? "max-w-[96rem]" : "max-w-7xl"
           }`}
         >
@@ -371,11 +372,18 @@ export default function Home() {
                 : "flex w-full items-center justify-between gap-6"
             }
           >
-            <div className="w-[26rem] shrink-0">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                ResumeAI
+            <div className={showResults ? "w-[26rem] shrink-0" : "min-w-0 max-w-2xl"}>
+              <h1 className="m-0 leading-none">
+                <Image
+                  src="/logo.png"
+                  alt="ResumeAI"
+                  width={699}
+                  height={182}
+                  className="h-12 w-auto sm:h-[3.25rem]"
+                  priority
+                />
               </h1>
-              <p className="mt-1 text-sm text-muted">{headerTagline}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{headerTagline}</p>
             </div>
             {showResults ? (
               <div className="grid min-w-0 flex-1 gap-6 xl:max-w-7xl xl:grid-cols-[1fr_380px] xl:items-center">
@@ -399,7 +407,7 @@ export default function Home() {
         }`}
       >
         {error && showResults && (
-          <div className="shrink-0 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+          <div className="shrink-0 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         )}
@@ -413,8 +421,8 @@ export default function Home() {
         />
 
         {viewMode === "upload" ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-8 sm:py-12 lg:items-stretch">
-              <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 lg:w-[min(100%,80rem)] lg:max-w-7xl">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-6 sm:py-10 lg:items-stretch">
+              <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 lg:w-[min(100%,80rem)] lg:max-w-7xl">
                 <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_20rem] lg:items-start">
                   <div ref={uploadPanelRef} className="min-h-0 min-w-0">
                     <UploadWorkspace
@@ -437,7 +445,7 @@ export default function Home() {
                   />
                 </div>
                 {error && (
-                  <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-4 text-sm text-rose-300">
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700">
                     <p>{error}</p>
                   </div>
                 )}

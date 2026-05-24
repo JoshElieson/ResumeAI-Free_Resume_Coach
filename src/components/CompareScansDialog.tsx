@@ -27,15 +27,15 @@ export function CompareScansDialog({ open, onClose }: Props) {
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
+        className="modal-overlay absolute inset-0"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="compare-scans-dialog-title"
-        className="relative flex max-h-[min(90vh,44rem)] w-full max-w-2xl flex-col overflow-hidden app-card shadow-xl shadow-black/40"
+        className="relative flex max-h-[min(90vh,44rem)] w-full max-w-2xl flex-col overflow-hidden app-card shadow-lg shadow-neutral-900/10"
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+        <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div className="min-w-0">
             <h2
               id="compare-scans-dialog-title"
@@ -50,7 +50,7 @@ export function CompareScansDialog({ open, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 rounded-md p-1 text-muted transition-colors hover:bg-white/10 hover:text-foreground"
+            className="shrink-0 rounded-md p-1 text-muted transition-colors hover:bg-subtle-hover hover:text-foreground"
             aria-label="Close"
           >
             <svg

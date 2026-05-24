@@ -22,9 +22,9 @@ import type { JobSearchContext } from "@/types/jobContext";
 import type { ScanSummary } from "@/types/scan";
 
 const TYPE_BORDER: Record<Annotation["type"], string> = {
-  strength: "border-l-emerald-400",
-  weakness: "border-l-rose-400",
-  suggestion: "border-l-amber-400",
+  strength: "border-l-emerald-600",
+  weakness: "border-l-rose-600",
+  suggestion: "border-l-amber-600",
 };
 
 const ALL_SECTION_TYPES: Annotation["type"][] = [
@@ -48,17 +48,17 @@ const NOTE_SECTIONS: {
   {
     type: "strength",
     label: "Strengths",
-    headerClass: "text-emerald-400",
+    headerClass: "text-emerald-700",
   },
   {
     type: "weakness",
     label: "Weaknesses",
-    headerClass: "text-rose-400",
+    headerClass: "text-rose-700",
   },
   {
     type: "suggestion",
     label: "Suggestions",
-    headerClass: "text-amber-400",
+    headerClass: "text-amber-800",
   },
 ];
 
@@ -134,18 +134,18 @@ type Props = {
 
 function scoreDeltaBadgeClasses(delta: number): string {
   if (delta === 0) {
-    return "text-muted bg-white/5 border-white/10";
+    return "text-muted bg-subtle border-border";
   }
   if (delta > 1) {
-    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/25";
+    return "text-emerald-800 bg-emerald-50 border-emerald-200";
   }
   if (delta > 0) {
-    return "text-emerald-300 bg-emerald-500/5 border-emerald-500/15";
+    return "text-emerald-700 bg-emerald-50/80 border-emerald-200/80";
   }
   if (delta <= -1) {
-    return "text-rose-400 bg-rose-500/10 border-rose-500/25";
+    return "text-rose-800 bg-rose-50 border-rose-200";
   }
-  return "text-amber-400 bg-amber-500/10 border-amber-500/25";
+  return "text-amber-800 bg-amber-50 border-amber-200";
 }
 
 function ScoreDeltaBadge({ delta }: { delta: number }) {
@@ -380,13 +380,13 @@ export function FeedbackPanel({
             return (
               <section
                 key={type}
-                className="overflow-hidden rounded-lg border border-white/5 bg-surface-elevated/40"
+                className="overflow-hidden rounded-lg border border-border bg-surface-elevated"
               >
                 <button
                   type="button"
                   onClick={() => toggleSection(type)}
                   aria-expanded={isOpen}
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition hover:bg-surface-elevated/80"
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition hover:bg-subtle"
                 >
                   <ChevronIcon open={isOpen} />
                   <span className={`text-sm font-semibold ${headerClass}`}>
@@ -395,7 +395,7 @@ export function FeedbackPanel({
                   <span className="text-xs text-muted">({items.length})</span>
                 </button>
                 {isOpen && (
-                  <ul className="space-y-2 border-t border-white/5 p-2">
+                  <ul className="space-y-2 border-t border-border-subtle p-2">
                     {items.length === 0 ? (
                       <li className="px-2 py-3 text-center text-xs text-muted">
                         No {label.toLowerCase()} in this scan.
@@ -413,9 +413,9 @@ export function FeedbackPanel({
                             }}
                           >
                             <div
-                              className={`flex gap-1 rounded-lg border border-white/5 border-l-4 bg-surface-elevated/80 transition hover:bg-surface-elevated ${TYPE_BORDER[ann.type]} ${
+                              className={`flex gap-1 rounded-lg border border-border border-l-4 bg-surface transition hover:bg-subtle ${TYPE_BORDER[ann.type]} ${
                                 activeIndex === index
-                                  ? "ring-2 ring-accent shadow-[0_0_20px_-6px_rgb(109_94_245_/_0.5)]"
+                                  ? "ring-2 ring-accent/30"
                                   : ""
                               }`}
                             >
@@ -430,7 +430,7 @@ export function FeedbackPanel({
                                 <p className="text-sm font-medium text-foreground">
                                   &ldquo;{ann.text}&rdquo;
                                 </p>
-                                <p className="mt-2 border-t border-white/5 pt-2 text-sm text-muted">
+                                <p className="mt-2 border-t border-border-subtle pt-2 text-sm text-muted">
                                   {ann.feedback}
                                 </p>
                               </button>
@@ -443,7 +443,7 @@ export function FeedbackPanel({
                                     e.stopPropagation();
                                     handleCopyNoteToChat(ann);
                                   }}
-                                  className="rounded-md p-1.5 text-muted transition hover:bg-white/10 hover:text-foreground"
+                                  className="rounded-md p-1.5 text-muted transition hover:bg-subtle-hover hover:text-foreground"
                                 >
                                   <CopyToChatIcon />
                                 </button>
@@ -455,7 +455,7 @@ export function FeedbackPanel({
                                     e.stopPropagation();
                                     onResolveAnnotation(index);
                                   }}
-                                  className="rounded-md p-1.5 text-muted transition hover:bg-white/10 hover:text-emerald-400"
+                                  className="rounded-md p-1.5 text-muted transition hover:bg-subtle-hover hover:text-emerald-700"
                                 >
                                   <ResolveNoteIcon />
                                 </button>

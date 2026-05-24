@@ -45,20 +45,20 @@ export function AdvancedTabModal({
         aria-label="Close"
         disabled={loading}
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm disabled:cursor-not-allowed"
+        className="modal-overlay absolute inset-0 disabled:cursor-not-allowed"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Advanced settings"
-        className="app-card glow-accent relative flex h-[min(36rem,85dvh)] w-full max-w-3xl flex-col overflow-hidden shadow-xl shadow-black/40"
+        className="app-card relative flex h-[min(36rem,85dvh)] w-full max-w-3xl flex-col overflow-hidden shadow-lg shadow-neutral-900/10"
       >
         <div className="flex shrink-0 justify-end px-4 pt-3 pb-1 sm:px-5 sm:pt-4 sm:pb-2">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-md p-1.5 text-muted transition-colors hover:bg-white/10 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md p-1.5 text-muted transition-colors hover:bg-subtle-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Close"
           >
             <svg
